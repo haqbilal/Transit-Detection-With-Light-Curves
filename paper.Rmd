@@ -1,0 +1,235 @@
+---
+title: "Examining Simulated Light Curve Data"
+author: "Bilal Haq"
+date: "22/02/2022"
+output: pdf_document
+bibliography: references.bib 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2) # install.packages("ggplot2")
+library(knitr) # install.packages("knitr")
+library(here)
+```
+
+## Abstract
+
+In this paper, we examine light curves and attempt to extract the properties of transiting exoplanets. The analysis will be based on the methods taught and practiced in class, as well as independent research. Thus we demonstrate the transit method of exoplanet detection as it functions to search for planets orbiting stars and determine their properties; notably orbital period and planetary radius. We will look at stars 1 and 2 of the given three stars, corresponding to spreadsheets c1 and c2. The analysis was conducted using R (@citeR). The data was obtained from http://astro.utoronto.ca/~ast251/AST251_2022_Project1/. The code and data used to produce this paper are available at https://github.com/haqbilal/TransitDetectionWithLightCurves.
+
+\pagebreak
+
+``` {r read_in_data, include=FALSE}
+# read in the data and do some cleaning of variable names
+c1 <- read.csv("haqbila1_c1.csv")
+colnames(c1) <- c("Days", "Brightness", "Uncertainty", "X", 
+                  "Star Mass (solar masses)", 1.031)
+c2 <- read.csv("haqbila1_c2.csv")
+colnames(c2) <- c("Days", "Brightness", "Uncertainty", "X", 
+                  "Star Mass (solar masses)", 0.767)
+```
+
+## 1. Graphs of the Light Curves
+
+The observed light curves of both stars are plotted below:
+
+&nbsp;
+
+```{r plot_star1, echo=FALSE, out.width="50%"}
+star1 <- ggplot(data=c1, aes(x=Days, y=Brightness)) + 
+  geom_line(aes(color="Star 1")) +
+  geom_errorbar(aes(ymin=Brightness-Uncertainty, ymax=Brightness+Uncertainty)) +
+  labs(x="Days", y="Brightness (SL)", title="Star 1") + 
+  scale_color_manual(values = c("C1 Planet 1" = "blue")) +
+  theme(legend.position="none")
+star1 + 
+  geom_vline(xintercept = 11.185, color="blue", alpha=0.4) +
+  geom_vline(xintercept = 25.6, color="blue", alpha=0.4) +
+  geom_vline(xintercept = 40.05, color="blue", alpha=0.4) +
+  theme(legend.position=c(0.5, 0.1), 
+        legend.title = element_blank(),
+        legend.background = element_rect(colour = 'black', 
+                                         fill = 'white', 
+                                         linetype='solid'),
+        plot.title=element_text(hjust=0.5))
+
+star2 <- ggplot(data=c2, aes(x=Days, y=Brightness)) + 
+  geom_line(aes(color="Star 1")) +
+  geom_errorbar(aes(ymin=Brightness-Uncertainty, ymax=Brightness+Uncertainty)) +
+  labs(x="Days", y="Brightness (SL)", title="Star 2") + 
+  scale_color_manual(values = c("C2 Planet 1" = "green", 
+                                "C2 Planet 2" = "red",
+                                "C2 Planet 3" = "purple",
+                                "C2 Planet 4" = "orange")) +
+  theme(legend.position="none")
+
+star2 +
+  geom_vline(xintercept = 15.4, color="green", alpha=0.4) +
+  geom_vline(xintercept = 56.5, color="green", alpha=0.4) +
+  geom_vline(xintercept = 76.6, color="green", alpha=0.4) +
+  geom_vline(xintercept = 97.6, color="green", alpha=0.4) +
+  geom_vline(xintercept = 117.7, color="green", alpha=0.4) +
+  geom_vline(xintercept = 158.5, color="green", alpha=0.4) +
+  geom_vline(xintercept = 179, color="green", alpha=0.4) +
+  geom_vline(xintercept = 19.7, color="purple", alpha=0.4) +
+  geom_vline(xintercept = 42, color="purple", alpha=0.4) +
+  geom_vline(xintercept = 64.3, color="purple", alpha=0.4) +
+  geom_vline(xintercept = 86.6, color="purple", alpha=0.4) +
+  geom_vline(xintercept = 108.3, color="purple", alpha=0.4) +
+  geom_vline(xintercept = 130.1, color="purple", alpha=0.4) +
+  geom_vline(xintercept = 152.1, color="purple", alpha=0.4) +
+  geom_vline(xintercept = 37, color="red", alpha=0.4) +
+  geom_vline(xintercept = 87.5, color="red", alpha=0.4) +
+  geom_vline(xintercept = 138, color="red", alpha=0.4) +
+  geom_vline(xintercept = 188.5, color="red", alpha=0.4) +
+  geom_vline(xintercept = 28, color="orange", alpha=0.4) +
+  geom_vline(xintercept = 86.8, color="orange", alpha=0.4) +
+  geom_vline(xintercept = 115.7, color="orange", alpha=0.4) +
+  geom_vline(xintercept = 144.6, color="orange", alpha=0.4) +
+  geom_vline(xintercept = 173.9, color="orange", alpha=0.4) +
+  theme(legend.position=c(0.59, 0.18), 
+        legend.title = element_blank(),
+        legend.background = element_rect(colour = 'black', 
+                                         fill = 'white', 
+                                         linetype='solid'),
+        plot.title=element_text(hjust=0.5))
+```
+
+&nbsp;
+
+Thus from the light curve, we have one planet, C1 Planet 1, in Star 1's orbit. While we have discovered 4 planets orbiting Star 2, our further analysis will only concern C2 Planets 1-3.
+
+## 2. Close-ups of the Primary Transit Per Planet
+
+The closeups of our four planets' primary transits are given below:
+
+&nbsp;
+
+```{r c1p1, echo=FALSE, warning=FALSE, out.width="50%"}
+star1 +
+  coord_cartesian(xlim = c(11.185-2, 11.185+2)) +
+  labs(title="C1 Planet 1") +
+  theme(plot.title=element_text(hjust=0.5))
+
+star2 +
+  coord_cartesian(xlim = c(15.4-2, 15.4+2), ylim = c(0.345, 0.347)) +
+  labs(title="C2 Planet 1") +
+  theme(plot.title=element_text(hjust=0.5))
+
+star2 +
+  coord_cartesian(xlim = c(37-2, 37+2), ylim = c(0.342, 0.347)) +
+  labs(title="C2 Planet 2") +
+  theme(plot.title=element_text(hjust=0.5))
+
+star2 +
+  coord_cartesian(xlim = c(19.7-2, 19.7+2), ylim=c(0.3465, 0.34675)) +
+  labs(title="C2 Planet 3") +
+  theme(plot.title=element_text(hjust=0.5))
+```
+
+&nbsp;
+
+## 3. Determining Some Properties
+
+We seek the following properties for each planet: orbital period (in years), planetary radius (in Earth radii), and planet type (a qualitative description).
+
+We can determine the orbital period by looking at the distance between two transits of a planet. As a good measure, we can take the mean distance between all transits. In general, if $n$ is the number of transits, and $d_n$ is the minimum brightness during each transit, then the orbital period $OP$ is:
+
+\begin{align}
+OP = \frac{\sum_{i=2}^n |d_{i} - d_{i-1}|}{n-1}
+\end{align}
+
+For example, the orbital period of C1 Planet 1 is:
+
+\begin{align*}
+\frac{(25.6 - 11.185) + (40.05 - 25.6)}{2} = \frac{14.415 + 14.45}{2} = 14.4325 \text{ years}
+\end{align*}
+
+We can calculate the planetary radius as the radius of the star times the square root of the depth of brightness (difference of max brightness and min brightness) during a transit. We take the mean depth to account for variability of the brightness. If $b_i^+$ and $b_i^-$ are the max and min brightness (respectively) during transit $i$, given $n$ total transits, then the planetary radius $PR$ is:
+
+\begin{align}
+PR = R_{star} \cdot \sqrt{\frac{\sum_{i=1}^n |b_i^+ - b_i^-|}{n}}
+\end{align}
+
+For example, the planetary radius of C1 Planet 1 is (where $R_{star1} = 1.03$ Earth radii):
+
+\begin{align*}
+1.03 \cdot \sqrt{\frac{(1.131770 - 1.126113) + (1.131726 - 1.126133) + (1.131759 - 1.126059)}{3}} \\
+= 0.0058195 \text{ Earth radii}
+\end{align*}
+
+Given the orbital period and planetary radius, we can obtain a qualitative description of the planet type, relative to known planets and types with similar properties, as obtained from @nasa_2022. 
+
+For example, since our C1 Planet 1 has an orbital radius of 0.0058195 Earth radii and an orbital period of 14.4325 years, so we can conclude that it is terrestrial, as other planets with the same properties have been found to be so. 
+
+The desired properties for each planet are tabulated below.
+
+```{r table, echo=FALSE}
+planet <- c("C1 Planet 1", "C2 Planet 1", "C2 Planet 2", 
+          "C2 Planet 3")
+period <- c(14.4, 20.5, 50.5, 22.3)
+
+radius <- c(0.0058195, 0.02902337, 0.04898789, 0.02902337)
+
+type <- c("Terrestrial", "Terrestrial", "Terrestrial", "Terrestrial")
+
+df <- data.frame(planet, period, radius, type)
+colnames(df) <- c("Light Curve & Planet", "Orbital Period (years)", 
+                  "Planetary Radius (Earth radii)", "Planet Type")
+
+kable(df)
+```
+
+## 4. Further Discussion
+
+### a. Other useful properties
+
+We can determine the orbital semimajor axis, $a$, from the orbital period, $p$, for each planet using the formula:
+
+\begin{align}
+p^2 = \frac{4 \pi^2}{G(M_{planet}M_{star})} a^3
+\end{align}
+
+However, assuming the mass of the planet is much less then the mass of the star, by Kepler's third law, we get (value of $G$ obtained from @physicscentral):
+
+\begin{align}
+p^2 = \frac{4 \pi^2}{GM_{star}} a^3
+\end{align}
+
+For example, the orbital semimajor axis of C1 Planet 1 is:
+
+Converting $p$ to seconds: $p = (14.4)(365.24)(86400) = 454416998$sec
+
+Converting $M_{star}$ to kg: $M_{star} = (1.031)(1.989 \cdot 10^{30}) = 2.05 \cdot 10^{33}$kg
+
+\begin{align*}
+a &\approx \bigg(\frac{6.674 \cdot 10^{-11} \cdot 2.05 \cdot 10^{33}}{4 \pi^2} \cdot 454416998^2\bigg)^{1/3} \\
+a &\approx 8.94 \cdot 10^{12} \text{m} = 60 \text{AU}
+\end{align*}
+
+### b. Evidence to support claims
+
+The Extrasolar Planets Encyclopedia (@extrasolarency) features a table which we can use to match the radius and period of our planets to regions with similar planets. 
+
+```{r planets, echo=FALSE, fig.align="center", out.width = '75%'}
+include_graphics(here::here("planet-radius-period.png"))
+```
+
+In doing so, we find that planets with low radius and high period are very unlikely. However, from the ones that do exist, most are terrestrial hence earth-like. Thus from the evidence we do have, we conclude accordingly that our simulated data represents terrestrial planets smaller than Earth, orbiting at large distances from their star.
+
+### c. Habitability of the planets
+
+For each planet, due to high distance from its star, as determined by the orbital semimajor axis, none of these planets are habitable by life-like-us because temperatures will be too cold (since each star is similar or less than, in mass and radius, the sun). 
+
+### d. Conclusions
+
+The lack of enough evidence to support the claims that our four planets are terrestrial, means we cannot be fully confident. Furthermore, both light curves for Star 1 and Star 2 exhibit some level of error (expressed as uncertainty) (more in Star 1), which can affect results. Also in Star 2's light curve, transits appear to be missing between the first and second transit, and the fifth and sixth transit of C2 Planet 1. Thus, the overall lack of observations of data here and data similar to what was observed here add more variability to the results, so no guaranteed conclusions can be made.
+
+\pagebreak
+
+## 5. References
+
+
+
+
+
